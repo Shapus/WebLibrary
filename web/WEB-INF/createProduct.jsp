@@ -12,16 +12,11 @@
         <title>Page 2</title>
     </head>
     <body>
-        <div>This is ${info}</div>
-        <br><br>
-        <a href="page1">To page_1</a>
-        <br>
-        <a href="page2">To page_2</a>
-        <br>
-        <a href="page3">To page_3</a>
-        <br><br>
-        <a href="MyServlet">To servlet</a>
-        <br><br>
-        <a href="index.html">To index</a>
+        <div style="display: flex; flex-direction: column">
+            <h2>Продукт создан</h2>
+            <p>Название: ${name}</p>
+            <p>Цена: ${price}</p>
+        </div>
+        <a href="index.jsp">На главную</a>
     </body>
 </html>
