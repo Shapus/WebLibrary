@@ -24,7 +24,8 @@ import session.UserFacade;
  * @author pupil
  */
 @WebServlet(name = "MyServlet", urlPatterns = {"/addProduct","/createProduct",
-                                               "/addUser","/createUser"})
+                                               "/addUser","/createUser",
+                                               "/productList"})
 public class MyServlet extends HttpServlet {
     @EJB
     private ProductFacade productFacade;
@@ -99,6 +100,10 @@ public class MyServlet extends HttpServlet {
             case "/addUser":
                 request.setAttribute("info", "Добавление пользователя");
                 request.getRequestDispatcher("/WEB-INF/addUserForm.jsp").forward(request, response);
+                break;
+            case "/productList":
+                request.setAttribute("productList", productFacade.findAll());
+                request.getRequestDispatcher("productList.jsp").forward(request, response);
                 break;
             default:
                 throw new AssertionError();

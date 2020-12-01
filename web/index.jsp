@@ -12,11 +12,13 @@
         <title>JKTVR19_WEBLibrary</title>
     </head>
     <body>
-        <h1>Библиотека</h1>
+        <h1>Магазин</h1>
         <div style="display: flex; flex-direction: column">
             <a href="addProduct">Создать продукт</a>
             <br>
             <a href="addUser">Создать пользователя</a>
+            <br>
+            <a href="productList">Список продуктов</a>
         </div>
     </body>
 </html>
