@@ -5,17 +5,21 @@
  */
 package Servlets;
 
+import entities.Deal;
 import entities.Product;
 import entities.User;
 import exceptions.IncorrectValueException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import session.DealFacade;
 import session.ProductFacade;
 import session.UserFacade;
 
@@ -25,12 +29,15 @@ import session.UserFacade;
  */
 @WebServlet(name = "MyServlet", urlPatterns = {"/addProduct","/createProduct",
                                                "/addUser","/createUser",
-                                               "/productList"})
+                                               "/productList",
+                                               "/buyProduct", "/createDeal"})
 public class MyServlet extends HttpServlet {
     @EJB
     private ProductFacade productFacade;
     @EJB
     private UserFacade userFacade;
+    @EJB
+    private DealFacade dealFacade;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -104,6 +111,51 @@ public class MyServlet extends HttpServlet {
             case "/productList":
                 request.setAttribute("productList", productFacade.findAll());
                 request.getRequestDispatcher("productList.jsp").forward(request, response);
+                break;
+            case "/buyProduct":
+                request.setAttribute("productList", productFacade.findAll());
+                request.setAttribute("userList", userFacade.findAll());
+                request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                break;
+            case "/createDeal":
+                request.setAttribute("productList", productFacade.findAll());
+                request.setAttribute("userList", userFacade.findAll());
+                
+                request.setAttribute("info", "Созание сделки");
+                Integer deal_product_id = Integer.parseInt(request.getParameter("productId"));
+                Integer deal_user_id = Integer.parseInt("1");
+                Integer deal_quantity = Integer.parseInt(request.getParameter("quantity"));
+                
+                User user = userFacade.find(deal_user_id);
+                Product product = productFacade.find(deal_product_id);
+                
+                if(deal_product_id == null || deal_user_id == null || deal_quantity == null || deal_quantity <= 0){
+                    request.setAttribute("info", "Заполните все поля!");
+                    request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                }
+                else if(product.getQuantity() < deal_quantity){
+                    request.setAttribute("info", "На скаладе недостаточно товара!");
+                    request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                }
+                else if(user.getMoney() < product.getPrice()*deal_quantity){
+                    request.setAttribute("info", "Недостаточно средств!");
+                    request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                }
+                else{
+                    
+                    Deal deal = new Deal(user, product, deal_quantity);
+                    dealFacade.create(deal);
+                    try {
+                        user.setMoney(user.getMoney()-product.getPrice()*deal_quantity);
+                        product.setQuantity(product.getQuantity()-deal_quantity);
+                        userFacade.edit(user);
+                        productFacade.edit(product);
+                    } catch (IncorrectValueException ex) {
+                        request.setAttribute("info", ex);
+                        request.getRequestDispatcher("/WEB-INF/sellProduct.jsp").forward(request, response);
+                    }
+                    request.getRequestDispatcher("index.jsp").forward(request, response);
+                }
                 break;
             default:
                 throw new AssertionError();

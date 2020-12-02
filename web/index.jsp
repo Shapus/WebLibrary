@@ -19,6 +19,8 @@
             <a href="addUser">Создать пользователя</a>
             <br>
             <a href="productList">Список продуктов</a>
+            <br>
+            <a href="buyProduct">Купить продукт</a>
         </div>
     </body>
 </html>
