@@ -28,7 +28,6 @@ import session.UserFacade;
  * @author pupil
  */
 @WebServlet(name = "MyServlet", urlPatterns = {"/addProduct","/createProduct",
-                                               "/addUser","/createUser",
                                                "/productList",
                                                "/buyProduct", "/createDeal"})
 public class MyServlet extends HttpServlet {
@@ -54,107 +53,124 @@ public class MyServlet extends HttpServlet {
             String path = request.getServletPath();
             request.setCharacterEncoding("UTF-8");
             switch (path) {
+                
+//====================================================================================================================                
             case "/createProduct":
-                request.setAttribute("info", "Создание продукта");
-                String product_name = request.getParameter("name");
-                Float price = null;
-                try{
-                price = Float.parseFloat(request.getParameter("price"));
-                }catch(Exception e){
-                    price = null;
-                }
-                request.setAttribute("name", product_name);
-                request.setAttribute("price", price);
-                if("".equals(product_name) || product_name == null || price.equals(null)){
-                    request.setAttribute("info", "Заполните все поля!");
-                    request.getRequestDispatcher("/WEB-INF/addProductForm.jsp").forward(request, response);
+                if((User)request.getSession().getAttribute("user") == null){
+                    request.getSession().setAttribute("redirectURL", "/WebLibrary/createProduct");
+                    response.sendRedirect("/WebLibrary/login");
                 }
                 else{
+                    request.setAttribute("info", "Создание продукта");
+                    String product_name = request.getParameter("name");
+                    Float price = null;
+                    Integer quantity = null;
                     try{
-                        Product product = new Product(product_name, price, 1);
-                        productFacade.create(product);
-                        request.getRequestDispatcher("/WEB-INF/createProduct.jsp").forward(request, response);
-                    }catch(IncorrectValueException e){
-                        request.setAttribute("info", e.toString());
+                        price = Float.parseFloat(request.getParameter("price"));
+                    }catch(Exception e){
+                        price = null;
+                    }
+                    try{
+                        quantity = Integer.parseInt(request.getParameter("quantity"));
+                    }catch(Exception e){
+                        quantity = null;
+                    }
+                    request.setAttribute("name", product_name);
+                    request.setAttribute("price", price);
+                    request.setAttribute("quantity", quantity);
+                    if("".equals(product_name) || product_name == null || price == null || quantity == null){
+                        request.setAttribute("info", "Заполните все поля!");
                         request.getRequestDispatcher("/WEB-INF/addProductForm.jsp").forward(request, response);
                     }
-                }
-                break;
-            case "/addProduct":
-                request.setAttribute("info", "Добавить продукт");
-                request.getRequestDispatcher("/WEB-INF/addProductForm.jsp").forward(request, response);
-                break;
-            case "/createUser":
-                request.setAttribute("info", "Созание пользователя");
-                String login = request.getParameter("login");
-                String password = request.getParameter("password");
-                request.setAttribute("login", login);
-                if("".equals(login) || login == null || "".equals(password) || password == null){
-                    request.setAttribute("info", "Заполните все поля!");
-                    request.getRequestDispatcher("/WEB-INF/addUserForm.jsp").forward(request, response);
-                }
-                else{
-                    try{
-                        User user = new User(login, password, User.Role.USER);
-                        userFacade.create(user);
-                        request.getRequestDispatcher("/WEB-INF/createUser.jsp").forward(request, response);
-                    }catch(IncorrectValueException e){
-                        request.setAttribute("info", e.toString());
-                        request.getRequestDispatcher("/WEB-INF/addUserForm.jsp").forward(request, response);
+                    else{
+                        try{
+                            Product product = new Product(product_name, price, quantity);
+                            productFacade.create(product);
+                            request.getRequestDispatcher("/WEB-INF/createProduct.jsp").forward(request, response);
+                        }catch(IncorrectValueException e){
+                            request.setAttribute("info", e.toString());
+                            request.getRequestDispatcher("/WEB-INF/addProductForm.jsp").forward(request, response);
+                        }
                     }
                 }
                 break;
-            case "/addUser":
-                request.setAttribute("info", "Добавление пользователя");
-                request.getRequestDispatcher("/WEB-INF/addUserForm.jsp").forward(request, response);
+                
+//====================================================================================================================                
+            case "/addProduct":
+                if((User)request.getSession().getAttribute("user") == null){
+                    request.getSession().setAttribute("redirectURL", "/WebLibrary/addProduct");
+                    response.sendRedirect("/WebLibrary/login");
+                }
+                else{
+                    request.setAttribute("info", "Добавить продукт");
+                    request.getRequestDispatcher("/WEB-INF/addProductForm.jsp").forward(request, response);
+                }
                 break;
+                
+//====================================================================================================================                
             case "/productList":
                 request.setAttribute("productList", productFacade.findAll());
                 request.getRequestDispatcher("productList.jsp").forward(request, response);
                 break;
+                
+//====================================================================================================================                
             case "/buyProduct":
-                request.setAttribute("productList", productFacade.findAll());
-                request.setAttribute("userList", userFacade.findAll());
-                request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
-                break;
-            case "/createDeal":
-                request.setAttribute("productList", productFacade.findAll());
-                request.setAttribute("userList", userFacade.findAll());
-                
-                request.setAttribute("info", "Созание сделки");
-                Integer deal_product_id = Integer.parseInt(request.getParameter("productId"));
-                Integer deal_user_id = Integer.parseInt("1");
-                Integer deal_quantity = Integer.parseInt(request.getParameter("quantity"));
-                
-                User user = userFacade.find(deal_user_id);
-                Product product = productFacade.find(deal_product_id);
-                
-                if(deal_product_id == null || deal_user_id == null || deal_quantity == null || deal_quantity <= 0){
-                    request.setAttribute("info", "Заполните все поля!");
-                    request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
-                }
-                else if(product.getQuantity() < deal_quantity){
-                    request.setAttribute("info", "На скаладе недостаточно товара!");
-                    request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
-                }
-                else if(user.getMoney() < product.getPrice()*deal_quantity){
-                    request.setAttribute("info", "Недостаточно средств!");
-                    request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                if((User)request.getSession().getAttribute("user") == null){
+                    request.getSession().setAttribute("redirectURL", "/WebLibrary/buyProduct");
+                    response.sendRedirect("/WebLibrary/login");
                 }
                 else{
-                    
-                    Deal deal = new Deal(user, product, deal_quantity);
-                    dealFacade.create(deal);
-                    try {
-                        user.setMoney(user.getMoney()-product.getPrice()*deal_quantity);
-                        product.setQuantity(product.getQuantity()-deal_quantity);
-                        userFacade.edit(user);
-                        productFacade.edit(product);
-                    } catch (IncorrectValueException ex) {
-                        request.setAttribute("info", ex);
-                        request.getRequestDispatcher("/WEB-INF/sellProduct.jsp").forward(request, response);
+                    request.setAttribute("productList", productFacade.findAll());
+                    request.setAttribute("userList", userFacade.findAll());
+                    request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                }
+                break;
+                
+//====================================================================================================================                
+            case "/createDeal":
+                if((User)request.getSession().getAttribute("user") == null){
+                    request.getSession().setAttribute("redirectURL", "/WebLibrary/buyProduct");
+                    response.sendRedirect("/WebLibrary/login");
+                }
+                else{
+                    request.setAttribute("productList", productFacade.findAll());
+                    request.setAttribute("userList", userFacade.findAll());
+
+                    request.setAttribute("info", "Созание сделки");
+                    Integer deal_product_id = Integer.parseInt(request.getParameter("productId"));
+                    User deal_user = (User) request.getSession().getAttribute("user");
+                    Integer deal_quantity = Integer.parseInt(request.getParameter("quantity"));
+
+                    User user = userFacade.find(deal_user.getId());
+                    Product product = productFacade.find(deal_product_id);
+
+                    if(deal_product_id == null || user == null || deal_quantity == null || deal_quantity <= 0){
+                        request.setAttribute("info", "Заполните все поля!");
+                        request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
                     }
-                    request.getRequestDispatcher("index.jsp").forward(request, response);
+                    else if(product.getQuantity() < deal_quantity){
+                        request.setAttribute("info", "На скаладе недостаточно товара!");
+                        request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                    }
+                    else if(user.getMoney() < product.getPrice()*deal_quantity){
+                        request.setAttribute("info", "Недостаточно средств!");
+                        request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                    }
+                    else{
+
+                        Deal deal = new Deal(user, product, deal_quantity);
+                        dealFacade.create(deal);
+                        try {
+                            user.setMoney(user.getMoney()-product.getPrice()*deal_quantity);
+                            product.setQuantity(product.getQuantity()-deal_quantity);
+                            userFacade.edit(user);
+                            productFacade.edit(product);
+                        } catch (IncorrectValueException ex) {
+                            request.setAttribute("info", ex);
+                            request.getRequestDispatcher("/WEB-INF/sellProduct.jsp").forward(request, response);
+                        }
+                        response.sendRedirect("/WebLibrary/buyProduct");
+                    }
                 }
                 break;
             default:

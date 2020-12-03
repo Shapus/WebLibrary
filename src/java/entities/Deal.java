@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -26,10 +27,11 @@ public class Deal implements Serializable{
 //=============================== VARIABLES
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @OneToOne
+    @NotNull @OneToOne
     private User user;
-    @OneToOne
+    @NotNull @OneToOne
     private Product product;
+    @NotNull
     private int quantity;
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;

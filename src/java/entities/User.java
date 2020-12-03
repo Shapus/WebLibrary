@@ -9,28 +9,33 @@ import exceptions.IncorrectValueException;
 import java.io.Serializable;
 import java.util.Objects;
 import javax.persistence.Basic;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-
+import javax.validation.constraints.NotNull;
 /**
  *
  * @author pupil
  */
+
 @Entity
 public class User implements Serializable{
 public static enum Role{GUEST, USER, ADMIN};
 //=============================== VARIABLES
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    @NotNull
     private Role role;
+    @NotNull @Column(unique=true)
     private String login;
+    @NotNull
     private String password;
-    @Basic(fetch=FetchType.EAGER)
+    @NotNull @Basic(fetch=FetchType.EAGER)
     private double money;
-    @Basic(fetch=FetchType.EAGER)
+    @NotNull @Basic(fetch=FetchType.EAGER)
     private boolean deleted;
 
 //=============================== CONSTRUCTORS

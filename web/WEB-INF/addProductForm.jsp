@@ -23,7 +23,12 @@
                 <label>Цена</label>
                 <input type="number" name="price" value="${price}">
             </div> 
+            <div>   
+                <label>Количество</label>
+                <input type="number" name="quantity" value="${quantity}">
+            </div> 
             <input type="submit" name="submit">
         </form>
+        <a href="index.jsp">На главную</a>
     </body>
 </html>

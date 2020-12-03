@@ -14,6 +14,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -26,13 +27,13 @@ public class Product implements Serializable{
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(fetch=FetchType.EAGER)
     private int id;
-    @Basic(fetch=FetchType.EAGER)
+    @NotNull @Basic(fetch=FetchType.EAGER)
     private String name;
-    @Basic(fetch=FetchType.EAGER)
+    @NotNull @Basic(fetch=FetchType.EAGER)
     private double price;
-    @Basic(fetch=FetchType.EAGER)
+    @NotNull @Basic(fetch=FetchType.EAGER)
     private int quantity;
-    @Basic(fetch=FetchType.EAGER)
+    @NotNull @Basic(fetch=FetchType.EAGER)
     private boolean deleted;
 
 //=============================== CONSTRUCTORS 
