@@ -9,6 +9,7 @@ import entities.User;
 import exceptions.IncorrectValueException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ResourceBundle;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -27,6 +28,9 @@ import session.UserFacade;
 public class LoginServlet extends HttpServlet {
     @EJB
     private UserFacade userFacade;
+    
+    public static final ResourceBundle paths = ResourceBundle.getBundle("properties.JspPaths");
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -51,13 +55,13 @@ public class LoginServlet extends HttpServlet {
                     String password = request.getParameter("password");
                     if("".equals(login) || login == null || "".equals(password) || password == null){
                         request.setAttribute("info", "Заполните все поля!");
-                        request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
+                        request.getRequestDispatcher(paths.getString("login")).forward(request, response);
                     }
                     else{
                         User user = userFacade.check(login, password);
                         if(user == null){
                             request.setAttribute("info", "Неверно введены логин и/или пароль!");
-                            request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
+                            request.getRequestDispatcher(paths.getString("login")).forward(request, response);
                         }
                         else{
                             request.getSession().setAttribute("user", user);
@@ -78,7 +82,7 @@ public class LoginServlet extends HttpServlet {
 //====================================================================================================================                    
                 case "/registration":
                     request.setAttribute("info", "Добавление пользователя");
-                    request.getRequestDispatcher("registrationForm.jsp").forward(request, response);
+                    request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
                     break;
                     
 //====================================================================================================================                    
@@ -88,16 +92,16 @@ public class LoginServlet extends HttpServlet {
                     String registration_password = request.getParameter("password");
                     if("".equals(registration_login) || registration_login == null || "".equals(registration_password) || registration_password == null){
                         request.setAttribute("info", "Заполните все поля!");
-                        request.getRequestDispatcher("registrationForm.jsp").forward(request, response);
+                        request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
                     }
                     else{
                         try{
                             User user = new User(registration_login, registration_password, User.Role.USER);
                             userFacade.create(user);
-                            request.getRequestDispatcher("/WEB-INF/createUser.jsp").forward(request, response);
+                            request.getRequestDispatcher(paths.getString("createUser")).forward(request, response);
                         }catch(IncorrectValueException e){
                             request.setAttribute("info", e.toString());
-                            request.getRequestDispatcher("registrationForm.jsp").forward(request, response);
+                            request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
                         }
                     }
                     break;

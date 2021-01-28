@@ -11,6 +11,7 @@ import entities.User;
 import exceptions.IncorrectValueException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
@@ -38,6 +39,7 @@ public class MyServlet extends HttpServlet {
     @EJB
     private DealFacade dealFacade;
 
+    public static final ResourceBundle paths = ResourceBundle.getBundle("properties.JspPaths");
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -58,7 +60,7 @@ public class MyServlet extends HttpServlet {
             case "/createProduct":
                 if((User)request.getSession().getAttribute("user") == null){
                     request.getSession().setAttribute("redirectURL", "/WebLibrary/createProduct");
-                    response.sendRedirect("/WebLibrary/login");
+                    response.sendRedirect(paths.getString("login"));
                 }
                 else{
                     request.setAttribute("info", "Создание продукта");
@@ -80,16 +82,16 @@ public class MyServlet extends HttpServlet {
                     request.setAttribute("quantity", quantity);
                     if("".equals(product_name) || product_name == null || price == null || quantity == null){
                         request.setAttribute("info", "Заполните все поля!");
-                        request.getRequestDispatcher("/WEB-INF/addProductForm.jsp").forward(request, response);
+                        request.getRequestDispatcher(paths.getString("addProductForm")).forward(request, response);
                     }
                     else{
                         try{
                             Product product = new Product(product_name, price, quantity);
                             productFacade.create(product);
-                            request.getRequestDispatcher("/WEB-INF/createProduct.jsp").forward(request, response);
+                            request.getRequestDispatcher(paths.getString("createProduct")).forward(request, response);
                         }catch(IncorrectValueException e){
                             request.setAttribute("info", e.toString());
-                            request.getRequestDispatcher("/WEB-INF/addProductForm.jsp").forward(request, response);
+                            request.getRequestDispatcher(paths.getString("addProductForm")).forward(request, response);
                         }
                     }
                 }
@@ -99,30 +101,30 @@ public class MyServlet extends HttpServlet {
             case "/addProduct":
                 if((User)request.getSession().getAttribute("user") == null){
                     request.getSession().setAttribute("redirectURL", "/WebLibrary/addProduct");
-                    response.sendRedirect("/WebLibrary/login");
+                    response.sendRedirect(paths.getString("login"));
                 }
                 else{
                     request.setAttribute("info", "Добавить продукт");
-                    request.getRequestDispatcher("/WEB-INF/addProductForm.jsp").forward(request, response);
+                    request.getRequestDispatcher(paths.getString("addProductForm")).forward(request, response);
                 }
                 break;
                 
 //====================================================================================================================                
             case "/productList":
                 request.setAttribute("productList", productFacade.findAll());
-                request.getRequestDispatcher("productList.jsp").forward(request, response);
+                request.getRequestDispatcher(paths.getString("productList")).forward(request, response);
                 break;
                 
 //====================================================================================================================                
             case "/buyProduct":
                 if((User)request.getSession().getAttribute("user") == null){
                     request.getSession().setAttribute("redirectURL", "/WebLibrary/buyProduct");
-                    response.sendRedirect("/WebLibrary/login");
+                    response.sendRedirect(paths.getString("login"));
                 }
                 else{
                     request.setAttribute("productList", productFacade.findAll());
                     request.setAttribute("userList", userFacade.findAll());
-                    request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                    request.getRequestDispatcher(paths.getString("buyProduct")).forward(request, response);
                 }
                 break;
                 
@@ -130,7 +132,7 @@ public class MyServlet extends HttpServlet {
             case "/createDeal":
                 if((User)request.getSession().getAttribute("user") == null){
                     request.getSession().setAttribute("redirectURL", "/WebLibrary/buyProduct");
-                    response.sendRedirect("/WebLibrary/login");
+                    response.sendRedirect(paths.getString("login"));
                 }
                 else{
                     request.setAttribute("productList", productFacade.findAll());
@@ -146,15 +148,15 @@ public class MyServlet extends HttpServlet {
 
                     if(deal_product_id == null || user == null || deal_quantity == null || deal_quantity <= 0){
                         request.setAttribute("info", "Заполните все поля!");
-                        request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                        request.getRequestDispatcher(paths.getString("buyProduct")).forward(request, response);
                     }
                     else if(product.getQuantity() < deal_quantity){
                         request.setAttribute("info", "На скаладе недостаточно товара!");
-                        request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                        request.getRequestDispatcher(paths.getString("buyProduct")).forward(request, response);
                     }
                     else if(user.getMoney() < product.getPrice()*deal_quantity){
                         request.setAttribute("info", "Недостаточно средств!");
-                        request.getRequestDispatcher("/WEB-INF/buyProduct.jsp").forward(request, response);
+                        request.getRequestDispatcher(paths.getString("buyProduct")).forward(request, response);
                     }
                     else{
 
@@ -169,7 +171,7 @@ public class MyServlet extends HttpServlet {
                             request.setAttribute("info", ex);
                             request.getRequestDispatcher("/WEB-INF/sellProduct.jsp").forward(request, response);
                         }
-                        response.sendRedirect("/WebLibrary/buyProduct");
+                        response.sendRedirect(paths.getString("buyProduct"));
                     }
                 }
                 break;
