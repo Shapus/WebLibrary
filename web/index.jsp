@@ -12,15 +12,8 @@
 <%@include file="/WEB-INF/jspf/header.jspf" %>
 
     
-    <br>
-    <div style="display: flex; align-items: center; justify-content: space-around; width: 30%" >
-        <a href="addProduct" class="action">Создать продукт</a>
-        <br>
-
-        <a href="productList" class="action">Список продуктов</a>
-        <br>
-        <a href="buyProduct" class="action">Купить продукт</a>
-        <br>
+    <div class="row">
+        <p>Главная</p>
     </div>
 
 <%@include file="/WEB-INF/jspf/footer.jspf" %>

@@ -50,7 +50,6 @@ public class LoginServlet extends HttpServlet {
                 
 //====================================================================================================================                
                 case "/login":
-                    request.setAttribute("info", "Созание пользователя");
                     String login = request.getParameter("login");
                     String password = request.getParameter("password");
                     if("".equals(login) || login == null || "".equals(password) || password == null){
@@ -81,23 +80,26 @@ public class LoginServlet extends HttpServlet {
                     
 //====================================================================================================================                    
                 case "/registration":
-                    request.setAttribute("info", "Добавление пользователя");
                     request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
                     break;
                     
 //====================================================================================================================                    
-                case "/createUser":
-                    request.setAttribute("info", "Созание пользователя");
+                case "/createUser": 
                     String registration_login = request.getParameter("login");
                     String registration_password = request.getParameter("password");
                     if("".equals(registration_login) || registration_login == null || "".equals(registration_password) || registration_password == null){
                         request.setAttribute("info", "Заполните все поля!");
                         request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
                     }
+                    else if(userFacade.loginExist(registration_login)){
+                        request.setAttribute("info", "Пользователь с таким именем уже существует!");
+                        request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
+                    }
                     else{
                         try{
                             User user = new User(registration_login, registration_password, User.Role.USER);
                             userFacade.create(user);
+                            request.setAttribute("login", user.getLogin());
                             request.getRequestDispatcher(paths.getString("createUser")).forward(request, response);
                         }catch(IncorrectValueException e){
                             request.setAttribute("info", e.toString());

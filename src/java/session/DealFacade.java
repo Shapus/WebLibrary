@@ -17,7 +17,7 @@ import javax.persistence.PersistenceContext;
 @Stateless
 public class DealFacade extends AbstractFacade<Deal> {
 
-    @PersistenceContext(unitName = "jktvr19_weblibrary")
+    @PersistenceContext(unitName = "jktvr19market")
     private EntityManager em;
 
     @Override

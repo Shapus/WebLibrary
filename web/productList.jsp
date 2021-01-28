@@ -6,21 +6,34 @@
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Продукты</title>
-    </head>
-    <body>
+
+<%@include file="/WEB-INF/jspf/header.jspf" %>
+<div class="row">
+    <div class="col-md-8">
         <h1>Список продуктов</h1>
-        <div style="display: flex; flex-wrap: wrap">
+    </div>
+</div>
+        
+        <div class="row">
             <c:forEach var="product" items="${productList}" varStatus = "status">
-                <div style="display:flex; flex-direction: column; border: solid black 1px; width: 200px; 
-                            justify-content: center; align-items: center; margin: 10px;">
-                    <p>${status.index+1}. ${product.name}</p>
-                    <p>Цена: ${product.price}</p>
-                    <p>Количество: ${product.quantity}</p>
+                <div class="col-md-4 pb-4">
+                    <div class="card">
+                        <h5 class="card-header">${product.name}</h5>
+                        <div class="card-body">
+                            <p class="card-text">Цена: ${product.price}</p>
+                            <p class="card-text">В наличии: ${product.quantity}</p>
+                            <div>
+                                <% if((User)session.getAttribute("user") == null){%>
+                                
+                                <% }else if(((User)session.getAttribute("user")).getRole() == Role.GUEST){ %>
+                                <a class="btn btn btn-primary" href="changeProduct?id=${product.id}">Изменить</a>
+                                <a class="btn btn btn-danger float-right" href="deleteProduct?id=${product.id}">Удалить</a>
+                                <% }else{%>
+                                <a class="btn btn-primary" href="buyProduct?id=${product.id}">Купить</a>
+                                <%}%>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </c:forEach>
         </div>

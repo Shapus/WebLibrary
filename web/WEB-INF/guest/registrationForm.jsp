@@ -5,26 +5,34 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <h2>Добавить пользователя</h2>
-        <p>${info}</p>
-        <form action="createUser" method="POST" style="display: flex; flex-direction: column; width: 400px; height: 200px; justify-content: space-around">
-            <div>   
-                <label>Имя пользователя</label>
-                <input type="text" name="login" value="${login}">
+
+<%@include file="/WEB-INF/jspf/header.jspf" %>
+
+    <div class="row">
+        <div class="col-md-10">
+            <h2>Регистрация</h2>
+            <p class="text-danger">${info}</p>
+        </div>
+    </div>
+    <div class="row">
+        <form class="col-md-10" action="createUser" method="POST">
+            <div class="form-group">   
+                <label class="col-form-label">Имя пользователя</label>
+                <div>
+                    <input class="form-control" type="text" name="login" value="">
+                </div>
             </div> 
-            <div>   
-                <label>Пароль</label>
-                <input type="password" name="password" value="">
+            <div class="form-group">   
+                <label class="col-form-label">Пароль</label>
+                <div>
+                    <input class="form-control" type="password" name="password" value="">
+                </div>
             </div> 
-            <input type="submit" name="submit">
+            <div class="form-group row align-items-end justify-content-between px-3">
+                <input class="btn btn-primary col-md-4" type="submit" name="submit" value="Зарегистрироваться">  
+                <a class="text-muted" href=".">На главную</a>
+            </div>
         </form>
-        <a href="index.jsp">На главную</a>
-    </body>
-</html>
+    </div>
+
+<%@include file="/WEB-INF/jspf/footer.jspf" %>

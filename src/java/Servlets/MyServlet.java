@@ -8,6 +8,7 @@ package Servlets;
 import entities.Deal;
 import entities.Product;
 import entities.User;
+import entities.User.Role;
 import exceptions.IncorrectValueException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,7 +31,8 @@ import session.UserFacade;
  */
 @WebServlet(name = "MyServlet", urlPatterns = {"/addProduct","/createProduct",
                                                "/productList",
-                                               "/buyProduct", "/createDeal"})
+                                               "/buyProduct", "/createDeal",
+                                               "/changeProductForm", "/changeProduct"})
 public class MyServlet extends HttpServlet {
     @EJB
     private ProductFacade productFacade;
@@ -60,10 +62,9 @@ public class MyServlet extends HttpServlet {
             case "/createProduct":
                 if((User)request.getSession().getAttribute("user") == null){
                     request.getSession().setAttribute("redirectURL", "/WebLibrary/createProduct");
-                    response.sendRedirect(paths.getString("login"));
+                    response.sendRedirect("login");
                 }
                 else{
-                    request.setAttribute("info", "Создание продукта");
                     String product_name = request.getParameter("name");
                     Float price = null;
                     Integer quantity = null;
@@ -100,11 +101,10 @@ public class MyServlet extends HttpServlet {
 //====================================================================================================================                
             case "/addProduct":
                 if((User)request.getSession().getAttribute("user") == null){
-                    request.getSession().setAttribute("redirectURL", "/WebLibrary/addProduct");
-                    response.sendRedirect(paths.getString("login"));
+                    request.getSession().setAttribute("redirectURL", "./addProduct");
+                    response.sendRedirect("login");
                 }
                 else{
-                    request.setAttribute("info", "Добавить продукт");
                     request.getRequestDispatcher(paths.getString("addProductForm")).forward(request, response);
                 }
                 break;
@@ -119,7 +119,7 @@ public class MyServlet extends HttpServlet {
             case "/buyProduct":
                 if((User)request.getSession().getAttribute("user") == null){
                     request.getSession().setAttribute("redirectURL", "/WebLibrary/buyProduct");
-                    response.sendRedirect(paths.getString("login"));
+                    response.sendRedirect("login");
                 }
                 else{
                     request.setAttribute("productList", productFacade.findAll());
@@ -132,13 +132,12 @@ public class MyServlet extends HttpServlet {
             case "/createDeal":
                 if((User)request.getSession().getAttribute("user") == null){
                     request.getSession().setAttribute("redirectURL", "/WebLibrary/buyProduct");
-                    response.sendRedirect(paths.getString("login"));
+                    response.sendRedirect("login");
                 }
                 else{
                     request.setAttribute("productList", productFacade.findAll());
                     request.setAttribute("userList", userFacade.findAll());
 
-                    request.setAttribute("info", "Созание сделки");
                     Integer deal_product_id = Integer.parseInt(request.getParameter("productId"));
                     User deal_user = (User) request.getSession().getAttribute("user");
                     Integer deal_quantity = Integer.parseInt(request.getParameter("quantity"));
@@ -171,12 +170,23 @@ public class MyServlet extends HttpServlet {
                             request.setAttribute("info", ex);
                             request.getRequestDispatcher("/WEB-INF/sellProduct.jsp").forward(request, response);
                         }
-                        response.sendRedirect(paths.getString("buyProduct"));
+                        response.sendRedirect("buyProduct");
                     }
                 }
                 break;
+            case "/changeProductForm":
+                User user = (User)request.getSession().getAttribute("user");
+                if(user == null || user.getRole() != Role.ADMIN){
+                    request.getRequestDispatcher("error404.jsp").forward(request, response);
+                    break;
+                }
+                request.getSession().setAttribute("redirectURL", "/WebLibrary/buyProduct");
+                response.sendRedirect("login");
+                break;
+            case "/changeProductAnswer":
+                break;
             default:
-                throw new AssertionError();
+                request.getRequestDispatcher("error404.jsp").forward(request, response);
         }
     }
 
