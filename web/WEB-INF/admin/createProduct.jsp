@@ -10,7 +10,7 @@
 
     <div class="row">
         <div class="col-md-8">
-            <div class="form-group">
+            <div class="form-group row">
                 <h2>Продукт создан</h2>
             </div>
             <div class="form-group row">
@@ -22,7 +22,12 @@
                 <p class="form-control">${price}</p>
             </div>
             <div class="form-group row">
-                <a class="text-muted" href=".">На главную</a>
+                <p class="col-form-label">Количество</p>
+                <p class="form-control">${quantity}</p>
+            </div>
+            <div class="form-group row align-items-end justify-content-between">
+                <a class="btn btn-primary" href=".">На главную</a>
+                <a class="text-muted" href="changeProductForm?id=${id}">Изменить</a>
             </div>
         </div>
     </div>

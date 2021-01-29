@@ -11,5 +11,4 @@
         <property name="driverClass" value="com.mysql.jdbc.Driver"/>
     </jdbc-connection-pool>
     <jdbc-resource enabled="true" jndi-name="jktvr19market" object-type="user" pool-name="mysql_jktvr19market_rootPool"/>
-    <jdbc-resource enabled="true" jndi-name="market" object-type="user" pool-name="mysql_jktvr19market_rootPool"/>
 </resources>

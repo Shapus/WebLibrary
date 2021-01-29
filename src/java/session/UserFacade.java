@@ -33,9 +33,19 @@ public class UserFacade extends AbstractFacade<User> {
     }
     public User check(String login, String password){
         Query q = em.
-        createQuery("SELECT u FROM User u WHERE u.login=:login AND u.password=:password").setParameter("login", login).setParameter("password", password);
-        User user = (User)q.getSingleResult();
-        return user;
+        createQuery("SELECT u.salt FROM User u WHERE u.login=:login").setParameter("login", login);
+        String salt = (String)q.getSingleResult();
+        q = em.
+        createQuery("SELECT u FROM User u WHERE u.login=:login AND u.password=:password")
+                .setParameter("login", login)
+                .setParameter("password", tools.EncryptPassword.createHash(password, salt));
+        try{
+            User user = (User)q.getSingleResult();
+            return user;
+        }catch(NoResultException e){
+            return null;
+        }
+        
     }
     public boolean loginExist(String login){
         Query q = em.

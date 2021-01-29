@@ -8,13 +8,13 @@
 
 <%@include file="/WEB-INF/jspf/header.jspf" %>
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-8">
                 <h2>Добавить Продукт</h2>
                 <p class="text-danger">${info}</p>
             </div>
         </div>
         <div class="row">
-            <form class="col-md-8" action="./createProduct" method="POST">
+            <form class="col-lg-8" action="./createProduct" method="POST">
                 <div class="form-group row"> 
                     <label class="col-sm-2 col-form-label">Название</label>
                     <div class="col-sm-10">

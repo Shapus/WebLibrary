@@ -34,6 +34,7 @@
                         <input class="form-control" type="number" name="quantity" value="${quantity}">
                     </div>
                 </div> 
+                <input type="hidden" name="id" value="${id}">
                 <div class="form-group row align-items-end justify-content-between px-3">
                     <input class="btn btn-primary" type="submit" name="submit" value="Подтвердить">
                     <a class="text-muted" href=".">На главную</a>

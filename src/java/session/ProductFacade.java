@@ -6,9 +6,14 @@
 package session;
 
 import entities.Product;
+import entities.User;
+import java.util.ArrayList;
+import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 /**
  *
@@ -27,6 +32,17 @@ public class ProductFacade extends AbstractFacade<Product> {
 
     public ProductFacade() {
         super(Product.class);
+    }
+    
+    public List<Product> findNotDeleted() {
+        Query q = em.
+        createQuery("SELECT p FROM Product p WHERE p.deleted=0");
+        try{
+            List<Product> products = q.getResultList();
+            return products;
+        }catch(NoResultException e){
+            return null;
+        }
     }
     
 }

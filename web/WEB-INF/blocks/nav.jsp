@@ -12,7 +12,6 @@
         <div class="navbar-nav">
             <a class="nav-item nav-link" href="addProduct">Создать продукт</a>
             <a class="nav-item nav-link" href="productList">Список продуктов</a>
-            <a class="nav-item nav-link" href="buyProduct">Купить продукт</a>
         </div>
         <div class="navbar-nav">
             <%

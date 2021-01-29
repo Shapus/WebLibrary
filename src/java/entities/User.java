@@ -33,6 +33,8 @@ public static enum Role{GUEST, USER, ADMIN};
     private String login;
     @NotNull
     private String password;
+    @NotNull
+    private String salt;
     @NotNull @Basic(fetch=FetchType.EAGER)
     private double money;
     @NotNull @Basic(fetch=FetchType.EAGER)
@@ -48,9 +50,12 @@ public static enum Role{GUEST, USER, ADMIN};
     }
     public User(String login, String password, Role role) throws IncorrectValueException{
         this.setLogin(login);
-        this.setPassword(password);
+        this.setSalt(tools.EncryptPassword.createSalt());
+        this.setPassword(tools.EncryptPassword.createHash(password, getSalt()));
         this.setRole(role);
         this.setMoney(10000);
+        
+        
         this.deleted = false;
     }
     
@@ -71,6 +76,12 @@ public static enum Role{GUEST, USER, ADMIN};
     public int getId(){
         return id;
     }
+    public String getSalt() {
+        return salt;
+    }
+
+
+    
     
 //=============================== SETTERS
     public void setRole(Role role) {
@@ -96,6 +107,9 @@ public static enum Role{GUEST, USER, ADMIN};
             throw new IncorrectValueException("Нельзя установить количество денег меньше нуля");
         }
         this.money = money;
+    }
+    public void setSalt(String salt) {
+        this.salt = salt;
     }
 
     
