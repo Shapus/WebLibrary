@@ -64,7 +64,9 @@ public class LoginServlet extends HttpServlet {
                         }
                         else{
                             request.getSession().setAttribute("user", user);
-                            request.setAttribute("login_info", "Вы вошли как "+user.getLogin());
+                            if(user.isDeleted()){
+                                request.getSession().setAttribute("user_info", "Пользователь заблокирован!");
+                            }
                             String redirectURL = request.getSession().getAttribute("redirectURL")!=null?(String)request.getSession().getAttribute("redirectURL"):"/WebLibrary/";
                             response.sendRedirect(redirectURL);
                         }
@@ -74,7 +76,7 @@ public class LoginServlet extends HttpServlet {
                     
 //====================================================================================================================                    
                 case "/logout":
-                    request.getSession().removeAttribute("user");
+                    request.getSession().invalidate();
                     response.sendRedirect("/WebLibrary/");
                     break;
                     

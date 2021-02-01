@@ -8,12 +8,23 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
 <%@include file="/WEB-INF/jspf/header.jspf" %>
-<% User user = (User)session.getAttribute("user");
+<%
+    Role role = Role.GUEST;
+    String money = "";
+    if((User)session.getAttribute("user") != null){
+        User user = (User)session.getAttribute("user");
+        role = user.getRole();
+        money = "$"+String.valueOf(user.getMoney());
+    }
     String deal_info = (String)session.getAttribute("deal_info");
     request.setAttribute("deal_info", deal_info);
+    request.setAttribute("user_money", money);
 %>
-    <div class="row">
-        <div class="col-md-8 offset-md-2 my-4">
+    <div class="row my-4">
+        <div class="col-md-2">
+            <h3>${user_money}</h3>
+        </div>
+        <div class="col-md-8">
             <h1>Список продуктов</h1>
         </div>
     </div>
@@ -29,12 +40,12 @@
                 <div class="col-lg-4 pb-4">
                     <div class="card">
                         <h5 class="card-header <c:choose><c:when test="${product.deleted==true}">bg-danger text-light</c:when></c:choose>">${product.name}</h5>
-                        <div class="card-body <c:choose><c:when test="${product.deleted==true}">bg-light</c:when></c:choose>">
+                        <div class="card-body <c:choose><c:when test="${product.deleted==true || product.quantity==0}">bg-light</c:when></c:choose>">
                             <p class="card-text">Цена: ${product.price}</p>
                             <p class="card-text">В наличии: ${product.quantity}</p>
-                            <% if(user == null || user.getRole() == Role.GUEST){%>
+                            <% if(role == Role.GUEST){%>
 
-                            <% }else if(user.getRole() == Role.ADMIN){ %>
+                            <% }else if(role == Role.ADMIN){ %>
                                 <a class="btn btn btn-primary" href="changeProductForm?id=${product.id}">Изменить</a>
                                 <c:choose>
                                     <c:when test="${product.deleted==true}">
@@ -44,7 +55,7 @@
                                         <a class="btn btn btn-danger float-right" href="deleteProduct?id=${product.id}">Удалить</a>
                                     </c:otherwise>
                                 </c:choose>
-                            <% }else if(user.getRole() == Role.USER){%>
+                            <% }else if(role == Role.USER){%>
                                 <form class="" action="createDeal" method="POST">
                                     <div class="form-group">
                                         <label class="col-form-label">Выберите количство:</label> 
@@ -52,7 +63,7 @@
                                     </div>
                                     <div class="form-group">
                                         <input type="hidden" value="${product.id}" name="productId" >
-                                        <input class="btn btn-primary" type="submit" value="Купить">
+                                        <input class="form-control btn btn-primary" type="submit" value="Купить">
                                     </div>
                                 </form>
                             <%}%>

@@ -76,9 +76,16 @@ public static enum Role{GUEST, USER, ADMIN};
     public int getId(){
         return id;
     }
+    public boolean isDeleted() {
+        return deleted;
+    }
     public String getSalt() {
         return salt;
     }
+    
+    
+
+    
 
 
     
@@ -107,6 +114,9 @@ public static enum Role{GUEST, USER, ADMIN};
             throw new IncorrectValueException("Нельзя установить количество денег меньше нуля");
         }
         this.money = money;
+    }
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
     public void setSalt(String salt) {
         this.salt = salt;

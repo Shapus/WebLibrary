@@ -14,6 +14,7 @@
     
     <div class="row">
         <p>Главная</p>
+        <p>${user_info}</p>   
     </div>
 
 <%@include file="/WEB-INF/jspf/footer.jspf" %>

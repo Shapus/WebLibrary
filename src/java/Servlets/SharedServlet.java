@@ -53,12 +53,22 @@ public class SharedServlet extends HttpServlet {
             response.setContentType("text/html;charset=UTF-8");
             String path = request.getServletPath();
             request.setCharacterEncoding("UTF-8");
-            User user = (User)request.getSession().getAttribute("user");
+            Role role = Role.GUEST;
+            if((User)request.getSession().getAttribute("user") != null){
+                User user = (User)request.getSession().getAttribute("user");
+                role = user.getRole();
+                if(user.isDeleted()){
+                    response.sendRedirect(".");
+                    request.getSession().setAttribute("user_info", "Пользователь заблокирован!");
+                    request.getSession().setAttribute("redirectURL", "/WebLibrary"+path);
+                    return;
+                }
+            }
             switch (path) {
                 
 //====================================================================================================================                
             case "/productList":
-                if(user.getRole() == Role.ADMIN){
+                if(role == Role.ADMIN){
                     request.setAttribute("productList", productFacade.findAll());
                 }
                 else{

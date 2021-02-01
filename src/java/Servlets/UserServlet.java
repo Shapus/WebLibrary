@@ -55,8 +55,13 @@ public class UserServlet extends HttpServlet {
             request.setCharacterEncoding("UTF-8");
             User user = (User)request.getSession().getAttribute("user");
             Boolean authenticated = false;
-            if(user != null && (user.getRole() == Role.USER || user.getRole() == Role.ADMIN)){
+            if(user != null && !user.isDeleted() && (user.getRole() == Role.USER || user.getRole() == Role.ADMIN)){
                 authenticated = true;
+            }else if(user.isDeleted()){
+                response.sendRedirect(".");
+                request.getSession().setAttribute("user_info", "Пользователь заблокирован!");
+                request.getSession().setAttribute("redirectURL", "/WebLibrary"+path);
+                return;
             }else{
                 response.sendRedirect("login");
                 request.getSession().setAttribute("redirectURL", "/WebLibrary"+path);

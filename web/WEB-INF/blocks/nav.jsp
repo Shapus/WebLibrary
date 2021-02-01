@@ -1,7 +1,14 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page import="entities.User"%>
+<%@page import="entities.User.Role"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-
+<%
+    Role role = Role.GUEST;
+    if((User)session.getAttribute("user") != null){
+        User user = (User)session.getAttribute("user");
+        role = user.getRole();
+    }
+%>
 <!-- Navbar start -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href=".">Market</a>
@@ -10,13 +17,14 @@
     </button>
     <div class="collapse navbar-collapse justify-content-between" id="navbarNavAltMarkup">
         <div class="navbar-nav">
+            <% if(role == Role.ADMIN){ %>
             <a class="nav-item nav-link" href="addProduct">Создать продукт</a>
+            <a class="nav-item nav-link" href="userList">Список пользователей</a>
+            <%}%>
             <a class="nav-item nav-link" href="productList">Список продуктов</a>
         </div>
         <div class="navbar-nav">
-            <%
-            if((User)session.getAttribute("user")==null){
-            %>
+            <% if(role == Role.GUEST){ %>
                 <a class="nav-item nav-link" href="login" >Войти</a>
                 <a class="nav-item nav-link" href="registration" >Зарегистрироваться</a>
             <%
@@ -33,9 +41,7 @@
                       <a class="nav-item nav-link" href="logout">Выйти</a>
                     </div>
                 </div>
-            <%
-            }
-            %>
+            <% } %>
         </div>   
       </div>
     </div>

@@ -28,7 +28,9 @@ import session.UserFacade;
  */
 @WebServlet(name = "AdminServlet", urlPatterns = {"/addProduct","/createProduct",
                                                "/changeProductForm", "/changeProductAnswer",
-                                               "/deleteProduct", "/restoreProduct"})
+                                               "/deleteProduct", "/restoreProduct",
+                                               "/userList",
+                                               "/blockUser", "/restoreUser"})
 public class AdminServlet extends HttpServlet {
     @EJB
     private ProductFacade productFacade;
@@ -172,6 +174,38 @@ public class AdminServlet extends HttpServlet {
                 productFacade.edit(restore_product);
                 request.getSession().setAttribute("deal_info", "Продукт id-"+restore_product_id+" восстановлен<br>");
                 response.sendRedirect("productList");
+                break;
+            case "/userList":
+                request.setAttribute("userList", userFacade.findAll());
+                request.getRequestDispatcher(paths.getString("userList")).forward(request, response);
+                break;
+            case "/blockUser":
+                String block_value = "defaultId";
+                try{
+                    block_value = (String)request.getParameterMap().get("id")[0];
+                    int block_user_id = Integer.parseInt(block_value);
+                    User block_user = userFacade.find(block_user_id);
+                    block_user.setDeleted(true);
+                    userFacade.edit(block_user);
+                    request.getSession().setAttribute("deal_info", "Пользователь "+block_user.getLogin()+" заблокирован<br>");
+                }catch(NullPointerException | NumberFormatException e1){
+                    request.getSession().setAttribute("deal_info", "Пользователь с id \""+block_value+"\" не найден<br>");
+                }
+                response.sendRedirect("userList");
+                break;
+            case "/restoreUser":
+                String restore_user_value = "defaultId";
+                try{
+                    restore_user_value = (String)request.getParameterMap().get("id")[0];
+                    int restore_user_id = Integer.parseInt(restore_user_value);
+                    User restore_user = userFacade.find(restore_user_id);
+                    restore_user.setDeleted(false);
+                    userFacade.edit(restore_user);
+                    request.getSession().setAttribute("deal_info", "Пользователь "+restore_user.getLogin()+" восстановлен<br>");
+                }catch(NullPointerException | NumberFormatException e1){
+                    request.getSession().setAttribute("deal_info", "Пользователь с id \""+restore_user_value+"\" не найден<br>");
+                }
+                response.sendRedirect("userList");
                 break;
             default:
                 request.getRequestDispatcher("error404.jsp").forward(request, response);
