@@ -5,6 +5,7 @@
  */
 package Servlets;
 
+import static Servlets.SharedServlet.paths;
 import entities.User;
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -30,7 +32,9 @@ import javax.servlet.http.Part;
 @MultipartConfig()
 public class UploadServlet {
     
-     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+    public static final ResourceBundle paths = ResourceBundle.getBundle("properties.JspPaths");
+    
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
             response.setContentType("text/html;charset=UTF-8");
             String path = request.getServletPath();
@@ -47,7 +51,7 @@ public class UploadServlet {
                 
  //====================================================================================================================                
                 case "/upload":
-                    request.getRequestDispatcher("WEB-INF").forward(request, response);
+                    request.getRequestDispatcher(paths.getString("upload")).forward(request, response);
 //====================================================================================================================                
                 case "/uploadAction":
                 String uploadFolder = "D:\\UploadFolder";

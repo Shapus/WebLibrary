@@ -13,7 +13,7 @@
 
     
     <div class="row">
-        <p>Главная</p>
+        <h2 class="mt-5">Главная</h2>
         <p>${user_info}</p>   
     </div>
 
