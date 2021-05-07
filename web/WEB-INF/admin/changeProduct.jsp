@@ -18,11 +18,12 @@
                     <p>${status.index+1}. ${product.name}</p>
                     <p>Цена: ${product.price}</p>
                     <p>Количество: ${product.quantity}</p>
+                    <img src="${product.image}">
                     <input type="hidden" value="${product.id}" name="productId" >
                     <input type="submit" value="Изменить" style="padding: 10px; margin: 10px">
                 </form>
             </c:forEach>
         </div>
-        <a href="index.jsp">На главную</a>
+        <a href=".">На главную</a>
 
 <%@include file="/WEB-INF/jspf/footer.jspf" %>

@@ -36,6 +36,6 @@
                 </form>
             </c:forEach>
         </div>
-        <a href="index.jsp">На главную</a>
+        <a href=".">На главную</a>
     </body>
 </html>

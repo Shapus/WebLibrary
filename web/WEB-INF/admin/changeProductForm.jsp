@@ -34,6 +34,12 @@
                         <input class="form-control" type="number" name="quantity" value="${quantity}">
                     </div>
                 </div> 
+                <div class="form-group row">   
+                    <label class="col-sm-2 col-form-label">Изображение</label>
+                    <div class="col-sm-10">
+                    <input class="" type="file" name="file" value="" onchange="loadFile(event)">
+                    <img id="uploaded_image" src="${image}">
+                </div>
                 <input type="hidden" name="id" value="${id}">
                 <div class="form-group row align-items-end justify-content-between px-3">
                     <input class="btn btn-primary" type="submit" name="submit" value="Подтвердить">
@@ -43,3 +49,9 @@
         </div>
 
 <%@include file="/WEB-INF/jspf/footer.jspf" %>
+<script>
+var loadFile = function(event) {
+	var image = document.getElementById('uploaded_image');
+	image.src = URL.createObjectURL(event.target.files[0]);
+};
+</script>

@@ -60,11 +60,11 @@ public class UserServlet extends HttpServlet {
             }else if(user.isDeleted()){
                 response.sendRedirect(".");
                 request.getSession().setAttribute("user_info", "Пользователь заблокирован!");
-                request.getSession().setAttribute("redirectURL", "/WebLibrary"+path);
+                request.getSession().setAttribute("redirectURL", "./"+path);
                 return;
             }else{
                 response.sendRedirect("login");
-                request.getSession().setAttribute("redirectURL", "/WebLibrary"+path);
+                request.getSession().setAttribute("redirectURL", "./"+path);
                 return;
             }
             switch (path) {

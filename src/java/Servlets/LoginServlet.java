@@ -77,7 +77,7 @@ public class LoginServlet extends HttpServlet {
 //====================================================================================================================                    
                 case "/logout":
                     request.getSession().invalidate();
-                    response.sendRedirect("/WebLibrary/");
+                    response.sendRedirect("./");
                     break;
                     
 //====================================================================================================================                    

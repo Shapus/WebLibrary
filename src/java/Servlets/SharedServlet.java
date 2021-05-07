@@ -60,7 +60,7 @@ public class SharedServlet extends HttpServlet {
                 if(user.isDeleted()){
                     response.sendRedirect(".");
                     request.getSession().setAttribute("user_info", "Пользователь заблокирован!");
-                    request.getSession().setAttribute("redirectURL", "/WebLibrary"+path);
+                    request.getSession().setAttribute("redirectURL", "./"+path);
                     return;
                 }
             }

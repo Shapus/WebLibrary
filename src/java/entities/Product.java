@@ -15,6 +15,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 
 /**
  *
@@ -35,16 +36,20 @@ public class Product implements Serializable{
     private int quantity;
     @NotNull @Basic(fetch=FetchType.EAGER)
     private boolean deleted;
+    @Null @Basic(fetch=FetchType.EAGER)
+    private String image;
+    
 
 //=============================== CONSTRUCTORS 
     public Product(){
         this.deleted = false;
     }
-    public Product(String name, double price, int quantity) throws IncorrectValueException{
+    public Product(String name, double price, int quantity, String image) throws IncorrectValueException{
         this.setName(name);
         this.setPrice(price);
         this.setQuantity(quantity);
         this.deleted = false;
+        this.image = image;
     }
 
     
@@ -72,6 +77,10 @@ public class Product implements Serializable{
     public boolean isDeleted(){
         return deleted;
     }
+    public String getImage() {
+        return image;
+    }
+    
     
 //=============================== SETTERS
     public void setName(String name) throws IncorrectValueException {
@@ -95,30 +104,34 @@ public class Product implements Serializable{
     public void setDeleted(boolean deleted){
         this.deleted = deleted;
     }
+    public void setImage(String image) {
+        this.image = image;
+    }
+    
   
     
 //=============================== OVERRIDDEN METHODS    
 //to string
     @Override
     public String toString() {
-        return getDeletedString()+"Product " + id + " {" + "model=" + name + ", cost=" + price + ", quantity=" + quantity + '}';
+        return getDeletedString()+"Product " + id + " {" + "model=" + name + ", cost=" + price + ", quantity=" + quantity + ", image=" + image + "}";
     }
     public String getData() {
         return "Product " + id + " {" + "model=" + name + ", cost=" + price + "}";
     }
-    
-    
-//hash code    
+
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 89 * hash + Objects.hashCode(this.name);
-        hash = 89 * hash + (int) (Double.doubleToLongBits(this.price) ^ (Double.doubleToLongBits(this.price) >>> 32));
-        hash = 89 * hash + this.quantity;
+        int hash = 3;
+        hash = 73 * hash + this.id;
+        hash = 73 * hash + Objects.hashCode(this.name);
+        hash = 73 * hash + (int) (Double.doubleToLongBits(this.price) ^ (Double.doubleToLongBits(this.price) >>> 32));
+        hash = 73 * hash + this.quantity;
+        hash = 73 * hash + (this.deleted ? 1 : 0);
+        hash = 73 * hash + Objects.hashCode(this.image);
         return hash;
     }
 
-//equals
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -131,12 +144,27 @@ public class Product implements Serializable{
             return false;
         }
         final Product other = (Product) obj;
+        if (this.id != other.id) {
+            return false;
+        }
         if (Double.doubleToLongBits(this.price) != Double.doubleToLongBits(other.price)) {
             return false;
         }
         if (this.quantity != other.quantity) {
             return false;
         }
+        if (this.deleted != other.deleted) {
+            return false;
+        }
+        if (!Objects.equals(this.name, other.name)) {
+            return false;
+        }
+        if (!Objects.equals(this.image, other.image)) {
+            return false;
+        }
         return true;
     }
+    
+    
+
 }

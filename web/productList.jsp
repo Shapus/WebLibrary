@@ -76,7 +76,7 @@
     </div>
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <a href="index.jsp">На главную</a>
+            <a href=".">На главную</a>
         </div>
     </div>
            

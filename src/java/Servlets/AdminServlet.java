@@ -5,32 +5,53 @@
  */
 package Servlets;
 
+import com.google.gson.Gson;
 import entities.Deal;
 import entities.Product;
 import entities.User;
 import entities.User.Role;
 import exceptions.IncorrectValueException;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.ejb.EJB;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+import javax.ws.rs.core.Context;
 import session.DealFacade;
 import session.ProductFacade;
 import session.UserFacade;
+import tools.UploadImage;
 
 /**
  *
  * @author pupil
  */
-@WebServlet(name = "AdminServlet", urlPatterns = {"/addProduct","/createProduct",
-                                               "/changeProductForm", "/changeProductAnswer",
-                                               "/deleteProduct", "/restoreProduct",
-                                               "/userList",
-                                               "/blockUser", "/restoreUser"})
+@WebServlet(name = "AdminServlet", urlPatterns = {"/create-product",
+                                                "/change-product",
+                                               "/delete-product", 
+                                               "/restore-product",
+                                               "/user-list",
+                                               "/block-user", 
+                                               "/restore-user"})
+@MultipartConfig()
 public class AdminServlet extends HttpServlet {
     @EJB
     private ProductFacade productFacade;
@@ -39,6 +60,9 @@ public class AdminServlet extends HttpServlet {
     @EJB
     private DealFacade dealFacade;
 
+    @Context
+    ServletContext servletContext;
+    
     public static final ResourceBundle paths = ResourceBundle.getBundle("properties.JspPaths");
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -49,115 +73,81 @@ public class AdminServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    
+    
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-            response.setContentType("text/html;charset=UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
             String path = request.getServletPath();
             request.setCharacterEncoding("UTF-8");
+            
+            HashMap outValue = new HashMap();
+            ServletOutputStream outStream = response.getOutputStream();
+            Gson gson = new Gson();
             User user = (User)request.getSession().getAttribute("user");
-            Boolean authenticated = false;
-            if(user != null && user.getRole() == Role.ADMIN){
-                authenticated = true;
-            }else{
-                request.getRequestDispatcher("error404.jsp").forward(request, response);
-                return;
+            if(user == null || user.getRole() != Role.ADMIN){
+                
             }
             switch (path) {
                 
 //====================================================================================================================                
-            case "/createProduct":
-                String product_name = request.getParameter("name");
-                Float price = null;
-                Integer quantity = null;
+            case "/create-product":
+                List<Part> fileParts = null;
                 try{
-                    price = Float.parseFloat(request.getParameter("price"));
+                    fileParts = request
+                                .getParts()
+                                .stream()
+                                .filter(part -> "file".equals(part.getName()))
+                                .collect(Collectors.toList());
                 }catch(Exception e){
-                    price = null;
+                    
                 }
+                
                 try{
-                    quantity = Integer.parseInt(request.getParameter("quantity"));
-                }catch(Exception e){
-                    quantity = null;
-                }
-                request.setAttribute("name", product_name);
-                request.setAttribute("price", price);
-                request.setAttribute("quantity", quantity);
-                if("".equals(product_name) || product_name == null || price == null || quantity == null){
-                    request.setAttribute("info", "Заполните все поля!");
-                    request.getRequestDispatcher(paths.getString("addProductForm")).forward(request, response);
-                }
-                else{
+                    String product_name = request.getParameter("name");
+                    Float price = Float.parseFloat(request.getParameter("price"));
+                    Integer quantity = Integer.parseInt(request.getParameter("quantity"));
+                    
+                    String image = UploadImage.upload(fileParts);
                     try{
-                        Product product = new Product(product_name, price, quantity);
+                        Product product = new Product(product_name, price, quantity, image);
                         productFacade.create(product);
-                        request.setAttribute("id", product.getId());
-                        request.getRequestDispatcher(paths.getString("createProduct")).forward(request, response);
+                        outValue.put("product", product);
                     }catch(IncorrectValueException e){
-                        request.setAttribute("info", e.toString());
-                        request.getRequestDispatcher(paths.getString("addProductForm")).forward(request, response);
+                        outValue.put("error", "Incorrect values");
                     }
                 }
-                break;
-                
-//====================================================================================================================                
-            case "/addProduct":
-                request.getRequestDispatcher(paths.getString("addProductForm")).forward(request, response);
-                break;
-                
-//====================================================================================================================                
-            case "/productList":
-                request.setAttribute("productList", productFacade.findAll());
-                request.getRequestDispatcher(paths.getString("productList")).forward(request, response);
-                break;
-                
-//==================================================================================================================== 
-            case "/changeProductForm":
-                String value = (String)request.getParameterMap().get("id")[0];
-                int product_id = Integer.parseInt(value);
-                Product product = productFacade.find(product_id);
-                request.setAttribute("id", product.getId());
-                request.setAttribute("name", product.getName());
-                request.setAttribute("price", product.getPrice());
-                request.setAttribute("quantity", product.getQuantity());
-                request.getRequestDispatcher(paths.getString("changeProductForm")).forward(request, response);
+                catch(NullPointerException e){
+                    outValue.put("error", "Values not found");
+                }
                 break;
                 
 //====================================================================================================================                 
-            case "/changeProductAnswer":
-                try {
+            case "/change-product":
+                try{
                     Integer change_product_id = Integer.parseInt(request.getParameter("id"));
                     String change_product_name = request.getParameter("name");
                     int change_product_quantity = (int)Float.parseFloat(request.getParameter("quantity"));
                     Float change_product_price = Float.parseFloat(request.getParameter("price"));
                     
-                    Product change_product = productFacade.find(change_product_id);
-                    String old_name = change_product.getName();
-                    int old_quantity = change_product.getQuantity();
-                    double old_price = change_product.getPrice();
-                    change_product.setName(change_product_name);
-                    change_product.setQuantity(change_product_quantity);
-                    change_product.setPrice(change_product_price);
-                    productFacade.edit(change_product);
-                    
-                    String admin_info = "Вы изменили продукт id-"+change_product.getId()+"<br>";
-                    if(!old_name.equals(change_product.getName())){
-                       admin_info += "<br>Имя: "+old_name+" -> "+change_product.getName(); 
+                    try {       
+                        Product change_product = productFacade.find(change_product_id);
+                        change_product.setName(change_product_name);
+                        change_product.setQuantity(change_product_quantity);
+                        change_product.setPrice(change_product_price);
+                        productFacade.edit(change_product);
+                        outValue.put("product", change_product);
+                    } catch (IncorrectValueException|NullPointerException ex) {
+                        outValue.put("error", "Incorrect values");
                     }
-                    if(old_quantity != change_product.getQuantity()){
-                       admin_info += "<br>Количество: "+old_quantity+" -> "+change_product.getQuantity(); 
-                    }
-                    if(old_price != change_product.getPrice()){
-                       admin_info += "<br>Цена: "+old_price+" -> "+change_product.getPrice(); 
-                    }
-                    request.getSession().setAttribute("deal_info", admin_info);
-                } catch (IncorrectValueException ex) {
-                    request.getSession().setAttribute("deal_info", ex.toString());
-                } catch (NumberFormatException e){
-                    request.getSession().setAttribute("deal_info", "Неверный ввод!");
+                }catch(NumberFormatException e){
+                    outValue.put("error", "Incorrect values");
                 }
-                response.sendRedirect("productList");
                 break;
-            case "/deleteProduct":
+                
+                
+//====================================================================================================================                  
+            case "/delete-product":
                 String delete_value = (String)request.getParameterMap().get("id")[0];
                 int delete_product_id = Integer.parseInt(delete_value);
                 Product delete_product = productFacade.find(delete_product_id);
@@ -166,7 +156,10 @@ public class AdminServlet extends HttpServlet {
                 request.getSession().setAttribute("deal_info", "Продукт id-"+delete_product_id+" удален<br>");
                 response.sendRedirect("productList");
                 break;
-            case "/restoreProduct":
+                
+                
+//====================================================================================================================                  
+            case "/restore-product":
                 String restore_value = (String)request.getParameterMap().get("id")[0];
                 int restore_product_id = Integer.parseInt(restore_value);
                 Product restore_product = productFacade.find(restore_product_id);
@@ -175,11 +168,17 @@ public class AdminServlet extends HttpServlet {
                 request.getSession().setAttribute("deal_info", "Продукт id-"+restore_product_id+" восстановлен<br>");
                 response.sendRedirect("productList");
                 break;
-            case "/userList":
+                
+                
+//====================================================================================================================                  
+            case "/user-list":
                 request.setAttribute("userList", userFacade.findAll());
                 request.getRequestDispatcher(paths.getString("userList")).forward(request, response);
                 break;
-            case "/blockUser":
+                
+                
+//====================================================================================================================                  
+            case "/block-user":
                 String block_value = "defaultId";
                 try{
                     block_value = (String)request.getParameterMap().get("id")[0];
@@ -193,7 +192,10 @@ public class AdminServlet extends HttpServlet {
                 }
                 response.sendRedirect("userList");
                 break;
-            case "/restoreUser":
+                
+                
+//====================================================================================================================                  
+            case "/restore-user":
                 String restore_user_value = "defaultId";
                 try{
                     restore_user_value = (String)request.getParameterMap().get("id")[0];
@@ -207,11 +209,14 @@ public class AdminServlet extends HttpServlet {
                 }
                 response.sendRedirect("userList");
                 break;
+                
+                
+//====================================================================================================================  
             default:
                 request.getRequestDispatcher("error404.jsp").forward(request, response);
         }
+        outStream.print(gson.toJson(outValue));
     }
-
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -250,5 +255,4 @@ public class AdminServlet extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
 }

@@ -14,7 +14,7 @@
             </div>
         </div>
         <div class="row">
-            <form class="col-lg-8" action="./createProduct" method="POST">
+            <form class="col-lg-8" action="./createProduct" method="POST" enctype="multipart/form-data">
                 <div class="form-group row"> 
                     <label class="col-sm-2 col-form-label">Название</label>
                     <div class="col-sm-10">
@@ -33,6 +33,13 @@
                         <input class="form-control" type="number" name="quantity" value="${quantity}">
                     </div>
                 </div> 
+                <div class="form-group row">   
+                    <label class="col-sm-2 col-form-label">Изображение</label>
+                    <div class="col-sm-10">
+                    <input class="" type="file" name="file" value="" onchange="loadFile(event)">
+                    <img id="uploaded_image" class="mt-2">
+                </div>
+                </div> 
                 <div class="form-group row align-items-end justify-content-between px-3">
                     <input class="btn btn-primary" type="submit" name="submit">
                     <a class="text-muted" href=".">На главную</a>
@@ -40,3 +47,10 @@
             </form>
         </div>
 <%@include file="/WEB-INF/jspf/footer.jspf" %>
+
+<script>
+var loadFile = function(event) {
+	var image = document.getElementById('uploaded_image');
+	image.src = URL.createObjectURL(event.target.files[0]);
+};
+</script>
