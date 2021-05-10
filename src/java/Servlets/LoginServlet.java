@@ -5,26 +5,29 @@
  */
 package Servlets;
 
+import com.google.gson.Gson;
 import entities.User;
 import exceptions.IncorrectValueException;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.ws.rs.core.Response;
 import session.UserFacade;
 
 /**
  *
  * @author pupil
  */
-@WebServlet(name = "LoginServlet", urlPatterns = {"/login", "/logout", 
-                                                  "/registration", "/createUser"})
+@WebServlet(name = "LoginServlet", urlPatterns = {"/login",
+                                                  "/registration"
+                                                 })
 public class LoginServlet extends HttpServlet {
     @EJB
     private UserFacade userFacade;
@@ -42,10 +45,14 @@ public class LoginServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-            response.setContentType("text/html;charset=UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
             String path = request.getServletPath();
             request.setCharacterEncoding("UTF-8");
             
+            Object outValue = new Object();
+            int code = 200;
+            String error = "";
+            Gson gson = new Gson();
             switch (path) {
                 
 //====================================================================================================================                
@@ -53,64 +60,51 @@ public class LoginServlet extends HttpServlet {
                     String login = request.getParameter("login");
                     String password = request.getParameter("password");
                     if("".equals(login) || login == null || "".equals(password) || password == null){
-                        request.setAttribute("info", "Заполните все поля!");
-                        request.getRequestDispatcher(paths.getString("login")).forward(request, response);
+                        error = "Bad request";
+                        code = 400;
                     }
                     else{
                         User user = userFacade.check(login, password);
                         if(user == null){
-                            request.setAttribute("info", "Неверно введены логин и/или пароль!");
-                            request.getRequestDispatcher(paths.getString("login")).forward(request, response);
+                            error = "Bad request";
+                            code = 400;
                         }
                         else{
-                            request.getSession().setAttribute("user", user);
-                            if(user.isDeleted()){
-                                request.getSession().setAttribute("user_info", "Пользователь заблокирован!");
-                            }
-                            String redirectURL = request.getSession().getAttribute("redirectURL")!=null?(String)request.getSession().getAttribute("redirectURL"):"/WebLibrary/";
-                            response.sendRedirect(redirectURL);
+                            outValue = userFacade.login(user.getId());
                         }
                         
                     }
                     break;
+                   
                     
 //====================================================================================================================                    
-                case "/logout":
-                    request.getSession().invalidate();
-                    response.sendRedirect("./");
-                    break;
-                    
-//====================================================================================================================                    
-                case "/registration":
-                    request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
-                    break;
-                    
-//====================================================================================================================                    
-                case "/createUser": 
+                case "/registration": 
                     String registration_login = request.getParameter("login");
                     String registration_password = request.getParameter("password");
                     if("".equals(registration_login) || registration_login == null || "".equals(registration_password) || registration_password == null){
-                        request.setAttribute("info", "Заполните все поля!");
-                        request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
+                        error = "Bad request";
+                        code = 400;
                     }
                     else if(userFacade.loginExist(registration_login)){
-                        request.setAttribute("info", "Пользователь с таким именем уже существует!");
-                        request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
+                        error = "Login already exist";
+                        code = 409;
                     }
                     else{
                         try{
                             User user = new User(registration_login, registration_password, User.Role.USER);
                             userFacade.create(user);
-                            request.setAttribute("login", user.getLogin());
-                            request.getRequestDispatcher(paths.getString("createUser")).forward(request, response);
+                            outValue = "User registered";
                         }catch(IncorrectValueException e){
-                            request.setAttribute("info", e.toString());
-                            request.getRequestDispatcher(paths.getString("registrationForm")).forward(request, response);
+                            error = "Bad request";
+                        code = 400;
                         }
                     }
                     break;
-            default:
-                throw new AssertionError();
+        }
+        if(code == 200){
+            response.getWriter().print(gson.toJson(outValue)); 
+        }else{
+            response.sendError(code, error);
         }
     }
 

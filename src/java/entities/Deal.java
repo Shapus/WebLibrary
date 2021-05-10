@@ -40,15 +40,15 @@ public class Deal implements Serializable{
     public Deal(){
     }
     public Deal(User user, Product product){
-        this.user = user;
-        this.product = product;
-        this.quantity = 1;
+        this.setUser(user);
+        this.setProduct(product);
+        this.setQuantity(1);
         this.date = new Date();
     }
     public Deal(User user, Product product, int quantity){
-        this.user = user;
-        this.product = product;
-        this.quantity = quantity;
+        this.setUser(user);
+        this.setProduct(product);
+        this.setQuantity(quantity);
         this.date = new Date();
     }
     
@@ -70,9 +70,26 @@ public class Deal implements Serializable{
     }
 
 //=============================== SETTERS
+    
     /*
     Данные делки нельзя изменить
     */
+    
+    private void setUser(User user) {
+        this.user = user;
+    }
+
+    private void setProduct(Product product) {
+        this.product = product;
+    }
+
+    private void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    private void setDate(Date date) {
+        this.date = date;
+    }
  
 
 //=============================== OVERRIDDEN METHODS    

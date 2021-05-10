@@ -47,6 +47,17 @@ public class UserFacade extends AbstractFacade<User> {
         }
         
     }
+    
+    public User getUser(String token){
+        Query q = em.
+        createQuery("SELECT u FROM User u WHERE u.token=:token").setParameter("token", token);
+        try{
+            return (User)q.getSingleResult();
+        }catch(NoResultException|NullPointerException e){
+            return null;
+        }
+    }
+    
     public boolean loginExist(String login){
         Query q = em.
         createQuery("SELECT u FROM User u WHERE u.login=:login").setParameter("login", login);
@@ -56,6 +67,22 @@ public class UserFacade extends AbstractFacade<User> {
         }catch(NoResultException e){
             return false;
         }
+    }
+    
+    public String login(int id){
+        String token = tools.EncryptPassword.createSalt();
+        Query q = em.
+        createQuery("UPDATE User SET u.token=:token WHERE u.id=:id").setParameter("id", id).setParameter("token", token);
+        q.executeUpdate();
+        return token;
+    }
+    
+    public void logout(int id){
+        Query q = em.
+        createQuery("UPDATE User SET u.token=:token WHERE u.id=:id").setParameter("id", id).setParameter("token", null);
+        try{
+            q.executeUpdate();
+        }catch(NullPointerException e){}
     }
     
 }

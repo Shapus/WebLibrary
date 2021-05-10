@@ -16,6 +16,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 /**
  *
  * @author pupil
@@ -38,15 +39,17 @@ public static enum Role{GUEST, USER, ADMIN};
     @NotNull @Basic(fetch=FetchType.EAGER)
     private double money;
     @NotNull @Basic(fetch=FetchType.EAGER)
-    private boolean deleted;
+    private boolean blocked;
+    @Null @Basic(fetch=FetchType.EAGER)
+    private String token;
 
 //=============================== CONSTRUCTORS
     public User(){
-        this.deleted = false;
+        this.blocked = false;
     }
     public User(Role role){
         this.setRole(role);
-        this.deleted = false;
+        this.blocked = false;
     }
     public User(String login, String password, Role role) throws IncorrectValueException{
         this.setLogin(login);
@@ -54,11 +57,9 @@ public static enum Role{GUEST, USER, ADMIN};
         this.setPassword(tools.EncryptPassword.createHash(password, getSalt()));
         this.setRole(role);
         this.setMoney(10000);
-        
-        
-        this.deleted = false;
+      
+        this.blocked = false;
     }
-    
 
 //=============================== GETTERS
     public Role getRole() {
@@ -76,18 +77,16 @@ public static enum Role{GUEST, USER, ADMIN};
     public int getId(){
         return id;
     }
-    public boolean isDeleted() {
-        return deleted;
+    public boolean isBlocked() {
+        return blocked;
     }
     public String getSalt() {
         return salt;
     }
+    public String getToken() {
+        return token;
+    }
     
-    
-
-    
-
-
     
     
 //=============================== SETTERS
@@ -115,12 +114,16 @@ public static enum Role{GUEST, USER, ADMIN};
         }
         this.money = money;
     }
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
     }
     public void setSalt(String salt) {
         this.salt = salt;
     }
+    public void setToken(String token) {
+        this.token = token;
+    }
+    
 
     
 //=============================== OVERRIDDEN METHODS    

@@ -6,15 +6,12 @@
 package tools;
 
 import static Servlets.AdminServlet.paths;
-import Servlets.UploadServlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.Part;
 
 /**
@@ -34,7 +31,7 @@ public class UploadImage {
                 Files.copy(fileContent, new File(filePath).toPath(), StandardCopyOption.REPLACE_EXISTING);
                 return uploadFolder+getFileName(filePart);
             } catch (IOException ex) {
-                Logger.getLogger(UploadServlet.class.getName()).log(Level.SEVERE, null, ex);
+                
             }
         }
         return null;

@@ -6,28 +6,17 @@
 package Servlets;
 
 import com.google.gson.Gson;
-import entities.Deal;
 import entities.Product;
 import entities.User;
 import entities.User.Role;
 import exceptions.IncorrectValueException;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.ejb.EJB;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -35,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import session.DealFacade;
 import session.ProductFacade;
 import session.UserFacade;
@@ -81,12 +71,21 @@ public class AdminServlet extends HttpServlet {
             String path = request.getServletPath();
             request.setCharacterEncoding("UTF-8");
             
-            HashMap outValue = new HashMap();
-            ServletOutputStream outStream = response.getOutputStream();
+            Object outValue = new Object();
+            int code = 200;
+            String error = "";
             Gson gson = new Gson();
-            User user = (User)request.getSession().getAttribute("user");
-            if(user == null || user.getRole() != Role.ADMIN){
-                
+            User user = null;
+            try{
+                String token = request.getHeader("Authorization").split(" ")[1];
+                user = userFacade.getUser(token);
+                if(user == null || user.getRole() != Role.ADMIN){
+                    response.sendError(404, "Not found");
+                    return;
+                }
+            }catch(NullPointerException e){
+                response.sendError(404, "Not found");
+                return;
             }
             switch (path) {
                 
@@ -102,23 +101,19 @@ public class AdminServlet extends HttpServlet {
                 }catch(Exception e){
                     
                 }
-                
                 try{
                     String product_name = request.getParameter("name");
                     Float price = Float.parseFloat(request.getParameter("price"));
                     Integer quantity = Integer.parseInt(request.getParameter("quantity"));
                     
                     String image = UploadImage.upload(fileParts);
-                    try{
-                        Product product = new Product(product_name, price, quantity, image);
-                        productFacade.create(product);
-                        outValue.put("product", product);
-                    }catch(IncorrectValueException e){
-                        outValue.put("error", "Incorrect values");
-                    }
+                    Product product = new Product(product_name, price, quantity, image);
+                    productFacade.create(product);
+                    outValue = product;
                 }
-                catch(NullPointerException e){
-                    outValue.put("error", "Values not found");
+                catch(IncorrectValueException|NullPointerException e){
+                    error = "Incorrect values";
+                    code = 400;
                 }
                 break;
                 
@@ -127,70 +122,70 @@ public class AdminServlet extends HttpServlet {
                 try{
                     Integer change_product_id = Integer.parseInt(request.getParameter("id"));
                     String change_product_name = request.getParameter("name");
-                    int change_product_quantity = (int)Float.parseFloat(request.getParameter("quantity"));
-                    Float change_product_price = Float.parseFloat(request.getParameter("price"));
+                    Integer change_product_quantity = Integer.parseInt(request.getParameter("quantity"));
+                    Float change_product_price = Float.parseFloat(request.getParameter("price"));    
                     
-                    try {       
-                        Product change_product = productFacade.find(change_product_id);
-                        change_product.setName(change_product_name);
-                        change_product.setQuantity(change_product_quantity);
-                        change_product.setPrice(change_product_price);
-                        productFacade.edit(change_product);
-                        outValue.put("product", change_product);
-                    } catch (IncorrectValueException|NullPointerException ex) {
-                        outValue.put("error", "Incorrect values");
-                    }
-                }catch(NumberFormatException e){
-                    outValue.put("error", "Incorrect values");
+                    Product change_product = productFacade.find(change_product_id);
+                    change_product.setName(change_product_name);
+                    change_product.setQuantity(change_product_quantity);
+                    change_product.setPrice(change_product_price);
+                    productFacade.edit(change_product);
+                    outValue = change_product;
+                }catch(IncorrectValueException|NumberFormatException e){
+                    error = "Incorrect values";
+                    code = 400;
                 }
                 break;
                 
                 
 //====================================================================================================================                  
             case "/delete-product":
-                String delete_value = (String)request.getParameterMap().get("id")[0];
-                int delete_product_id = Integer.parseInt(delete_value);
-                Product delete_product = productFacade.find(delete_product_id);
-                delete_product.setDeleted(true);
-                productFacade.edit(delete_product);
-                request.getSession().setAttribute("deal_info", "Продукт id-"+delete_product_id+" удален<br>");
-                response.sendRedirect("productList");
+                try{
+                    int delete_product_id = Integer.parseInt(request.getParameter("id"));
+                    Product delete_product = productFacade.find(delete_product_id);
+                    delete_product.setDeleted(true);
+                    productFacade.edit(delete_product);
+                    outValue = delete_product;
+                }catch(NullPointerException e){
+                    error = "Incorrect values";
+                    code = 400;
+                }
                 break;
                 
                 
 //====================================================================================================================                  
             case "/restore-product":
-                String restore_value = (String)request.getParameterMap().get("id")[0];
-                int restore_product_id = Integer.parseInt(restore_value);
-                Product restore_product = productFacade.find(restore_product_id);
-                restore_product.setDeleted(false);
-                productFacade.edit(restore_product);
-                request.getSession().setAttribute("deal_info", "Продукт id-"+restore_product_id+" восстановлен<br>");
-                response.sendRedirect("productList");
+                try{
+                    int restore_product_id = Integer.parseInt(request.getParameter("id"));
+                    Product restore_product = productFacade.find(restore_product_id);
+                    restore_product.setDeleted(false);
+                    productFacade.edit(restore_product);
+                    outValue = restore_product;
+                }catch(NullPointerException e){
+                    error = "Incorrect values";
+                    code = 400;
+                }
                 break;
                 
                 
 //====================================================================================================================                  
             case "/user-list":
-                request.setAttribute("userList", userFacade.findAll());
-                request.getRequestDispatcher(paths.getString("userList")).forward(request, response);
+                outValue = userFacade.findAll();
                 break;
                 
                 
 //====================================================================================================================                  
             case "/block-user":
-                String block_value = "defaultId";
                 try{
-                    block_value = (String)request.getParameterMap().get("id")[0];
-                    int block_user_id = Integer.parseInt(block_value);
+                    int block_user_id = Integer.parseInt(request.getParameter("id"));
                     User block_user = userFacade.find(block_user_id);
-                    block_user.setDeleted(true);
+                    block_user.setBlocked(true);
                     userFacade.edit(block_user);
-                    request.getSession().setAttribute("deal_info", "Пользователь "+block_user.getLogin()+" заблокирован<br>");
+                    outValue = true;
                 }catch(NullPointerException | NumberFormatException e1){
-                    request.getSession().setAttribute("deal_info", "Пользователь с id \""+block_value+"\" не найден<br>");
+                    error = "Incorrect values";
+                    code = 400;
                 }
-                response.sendRedirect("userList");
                 break;
                 
                 
@@ -201,21 +196,20 @@ public class AdminServlet extends HttpServlet {
                     restore_user_value = (String)request.getParameterMap().get("id")[0];
                     int restore_user_id = Integer.parseInt(restore_user_value);
                     User restore_user = userFacade.find(restore_user_id);
-                    restore_user.setDeleted(false);
+                    restore_user.setBlocked(false);
                     userFacade.edit(restore_user);
-                    request.getSession().setAttribute("deal_info", "Пользователь "+restore_user.getLogin()+" восстановлен<br>");
+                    outValue = true;
                 }catch(NullPointerException | NumberFormatException e1){
-                    request.getSession().setAttribute("deal_info", "Пользователь с id \""+restore_user_value+"\" не найден<br>");
+                    error = "Incorrect values";
+                    code = 400;
                 }
-                response.sendRedirect("userList");
                 break;
-                
-                
-//====================================================================================================================  
-            default:
-                request.getRequestDispatcher("error404.jsp").forward(request, response);
         }
-        outStream.print(gson.toJson(outValue));
+        if(code == 200){
+            response.getWriter().print(gson.toJson(outValue)); 
+        }else{
+            response.sendError(code, error);
+        }
     }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

@@ -5,6 +5,7 @@
  */
 package Servlets;
 
+import com.google.gson.Gson;
 import entities.Deal;
 import entities.Product;
 import entities.User;
@@ -21,6 +22,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
 import session.DealFacade;
 import session.ProductFacade;
 import session.UserFacade;
@@ -29,7 +31,7 @@ import session.UserFacade;
  *
  * @author pupil
  */
-@WebServlet(name = "SharedServlet", urlPatterns = {"/productList"})
+@WebServlet(name = "SharedServlet", urlPatterns = {"/product-list"})
 public class SharedServlet extends HttpServlet {
     @EJB
     private ProductFacade productFacade;
@@ -50,35 +52,41 @@ public class SharedServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-            response.setContentType("text/html;charset=UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
             String path = request.getServletPath();
             request.setCharacterEncoding("UTF-8");
+            
+            Object outValue = new Object();
+            int code = 200;
+            String error = "";
+            Gson gson = new Gson();
             Role role = Role.GUEST;
-            if((User)request.getSession().getAttribute("user") != null){
-                User user = (User)request.getSession().getAttribute("user");
-                role = user.getRole();
-                if(user.isDeleted()){
-                    response.sendRedirect(".");
-                    request.getSession().setAttribute("user_info", "Пользователь заблокирован!");
-                    request.getSession().setAttribute("redirectURL", "./"+path);
+            User user = null;
+            try{
+                String token = request.getHeader("Authorization").split(" ")[1];
+                user = userFacade.getUser(token);
+                if(user.isBlocked()){
+                    response.sendError(400, "User is blocked");
                     return;
                 }
+            }catch(NullPointerException e){
             }
             switch (path) {
                 
 //====================================================================================================================                
-            case "/productList":
+            case "/product-list":
                 if(role == Role.ADMIN){
-                    request.setAttribute("productList", productFacade.findAll());
+                    outValue = productFacade.findAll();
                 }
                 else{
-                    request.setAttribute("productList", productFacade.findNotDeleted());
+                    outValue = productFacade.findNotDeleted();
                 }
-                
-                request.getRequestDispatcher(paths.getString("productList")).forward(request, response);
                 break;
-            default:
-                request.getRequestDispatcher("error404.jsp").forward(request, response);
+        }
+        if(code == 200){
+            response.getWriter().print(gson.toJson(outValue)); 
+        }else{
+            response.sendError(code, error);
         }
     }
 

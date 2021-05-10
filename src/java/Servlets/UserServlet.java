@@ -5,22 +5,29 @@
  */
 package Servlets;
 
+import com.google.gson.Gson;
 import entities.Deal;
 import entities.Product;
 import entities.User;
 import entities.User.Role;
 import exceptions.IncorrectValueException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.core.Response;
 import session.DealFacade;
 import session.ProductFacade;
 import session.UserFacade;
@@ -29,7 +36,8 @@ import session.UserFacade;
  *
  * @author pupil
  */
-@WebServlet(name = "UserServlet", urlPatterns = {"/createDeal"})
+@WebServlet(name = "UserServlet", urlPatterns = {"/createDeal",
+                                                 "/logout"})
 public class UserServlet extends HttpServlet {
     @EJB
     private ProductFacade productFacade;
@@ -50,68 +58,76 @@ public class UserServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-            response.setContentType("text/html;charset=UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
             String path = request.getServletPath();
             request.setCharacterEncoding("UTF-8");
-            User user = (User)request.getSession().getAttribute("user");
-            Boolean authenticated = false;
-            if(user != null && !user.isDeleted() && (user.getRole() == Role.USER || user.getRole() == Role.ADMIN)){
-                authenticated = true;
-            }else if(user.isDeleted()){
-                response.sendRedirect(".");
-                request.getSession().setAttribute("user_info", "Пользователь заблокирован!");
-                request.getSession().setAttribute("redirectURL", "./"+path);
-                return;
-            }else{
-                response.sendRedirect("login");
-                request.getSession().setAttribute("redirectURL", "./"+path);
+            Object outValue = new Object();
+            int code = 200;
+            String error = "";
+            Gson gson = new Gson();
+            User user = null;
+            try{
+                String token = request.getHeader("Authorization").split(" ")[1];
+                user = userFacade.getUser(token);
+                if(user == null){
+                    response.sendError(401, "Unauthorized");
+                    return;
+                }else if(user.isBlocked()){
+                    response.sendError(400, "User is blocked");
+                    return;
+                }
+            }catch(NullPointerException e){
+                response.sendError(401, "Unauthorized");
                 return;
             }
+            
             switch (path) {
-                
+            
+//====================================================================================================================                    
+            case "/logout":
+                userFacade.logout(user.getId());
+                break;
                 
 //====================================================================================================================                
-            case "/createDeal":
-                request.setAttribute("productList", productFacade.findAll());
-                request.setAttribute("userList", userFacade.findAll());
-                
+            case "/createDeal":               
                 try{
                     Integer deal_product_id = Integer.parseInt(request.getParameter("productId"));
                     Integer deal_quantity = Integer.parseInt(request.getParameter("quantity"));
-
                     Product product = productFacade.find(deal_product_id);
 
-                    if(deal_quantity <= 0){
-                        request.getSession().setAttribute("deal_info", "Количество должно быть больше нуля!");
+                    if(deal_quantity <= 0 || product.getQuantity() < deal_quantity || user.getMoney() < product.getPrice()*deal_quantity){
+                        code = 400;
+                        error = "Bad request";
                     }
-                    else if(product.getQuantity() < deal_quantity){
-                        request.getSession().setAttribute("deal_info", "На скаладе недостаточно товара!");
-                    }
-                    else if(user.getMoney() < product.getPrice()*deal_quantity){
-                        request.getSession().setAttribute("deal_info", "Недостаточно средств!");
-                    }
+  
                     else{
-
                         Deal deal = new Deal(user, product, deal_quantity);
+                        Product product_copy = product;
                         dealFacade.create(deal);
+                        boolean user_edited = false;
                         try {
                             user.setMoney(user.getMoney()-product.getPrice()*deal_quantity);
                             product.setQuantity(product.getQuantity()-deal_quantity);
-                            userFacade.edit(user);
                             productFacade.edit(product);
-                            request.getSession().setAttribute("deal_info", "Вы купили: "+product.getName()+" в количестве "+deal_quantity);
+                            userFacade.edit(user);
+                            user_edited = true;
+                            outValue = deal;
                         } catch (IncorrectValueException ex) {
-                            request.getSession().setAttribute("deal_info", ex);
-                            request.getRequestDispatcher("/WEB-INF/sellProduct.jsp").forward(request, response);
+                            if(!user_edited){
+                                productFacade.edit(product_copy);
+                            }
                         }
                     }
                 }catch(NumberFormatException e){
-                    request.getSession().setAttribute("deal_info", "Неверно введены параметры!!");
+                    code = 400;
+                        error = "Incorrect values";
                 }
-                response.sendRedirect("productList");
                 break;
-            default:
-                response.sendRedirect("login");
+        }
+        if(code == 200){
+            response.getWriter().print(gson.toJson(outValue)); 
+        }else{
+            response.sendError(code, error);
         }
     }
 
