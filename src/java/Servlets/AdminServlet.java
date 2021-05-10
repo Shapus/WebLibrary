@@ -53,6 +53,7 @@ public class AdminServlet extends HttpServlet {
     @Context
     ServletContext servletContext;
     
+    
     public static final ResourceBundle paths = ResourceBundle.getBundle("properties.JspPaths");
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -65,9 +66,18 @@ public class AdminServlet extends HttpServlet {
      */
     
     
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+            resp.setHeader("Access-Control-Allow-Origin", "*");
+            resp.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type,Accept,Origin");
+    }
+    
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
             response.setContentType("application/json;charset=UTF-8");
+            response.setHeader("Access-Control-Allow-Origin", "*");
+            response.setHeader("Access-Control-Allow-Headers", "origin, content-type, accept, Authorization");
             String path = request.getServletPath();
             request.setCharacterEncoding("UTF-8");
             

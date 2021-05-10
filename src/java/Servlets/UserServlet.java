@@ -37,7 +37,8 @@ import session.UserFacade;
  * @author pupil
  */
 @WebServlet(name = "UserServlet", urlPatterns = {"/createDeal",
-                                                 "/logout"})
+                                                 "/logout",
+                                                 "/user"})
 public class UserServlet extends HttpServlet {
     @EJB
     private ProductFacade productFacade;
@@ -56,39 +57,54 @@ public class UserServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+    
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-            response.setContentType("application/json;charset=UTF-8");
-            String path = request.getServletPath();
-            request.setCharacterEncoding("UTF-8");
-            Object outValue = new Object();
-            int code = 200;
-            String error = "";
-            Gson gson = new Gson();
-            User user = null;
-            try{
-                String token = request.getHeader("Authorization").split(" ")[1];
-                user = userFacade.getUser(token);
-                if(user == null){
-                    response.sendError(401, "Unauthorized");
-                    return;
-                }else if(user.isBlocked()){
-                    response.sendError(400, "User is blocked");
-                    return;
-                }
-            }catch(NullPointerException e){
+            resp.setHeader("Access-Control-Allow-Origin", "*");
+            resp.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type,Accept,Origin");
+    }
+
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Headers", "Authorization");
+        String path = request.getServletPath();
+        request.setCharacterEncoding("UTF-8");
+        Object outValue = new Object();
+        int code = 200;
+        String error = "";
+        Gson gson = new Gson();
+        User user = null;
+        try{
+            String token = request.getHeader("Authorization").split(" ")[1];
+            user = userFacade.getUser(token);
+            if(user == null){
                 response.sendError(401, "Unauthorized");
                 return;
+            }else if(user.isBlocked()){
+                response.sendError(400, "User is blocked");
+                return;
             }
-            
-            switch (path) {
+        }catch(NullPointerException e){
+            response.sendError(401, "Unauthorized");
+            return;
+        }
+        
+        switch (path) {
             
 //====================================================================================================================                    
             case "/logout":
                 userFacade.logout(user.getId());
                 break;
                 
-//====================================================================================================================                
+                
+//====================================================================================================================                    
+            case "/user":
+                outValue = user.getId();
+                break;
+                
+                
+//====================================================================================================================
             case "/createDeal":               
                 try{
                     Integer deal_product_id = Integer.parseInt(request.getParameter("productId"));
@@ -120,7 +136,7 @@ public class UserServlet extends HttpServlet {
                     }
                 }catch(NumberFormatException e){
                     code = 400;
-                        error = "Incorrect values";
+                    error = "Incorrect values";
                 }
                 break;
         }

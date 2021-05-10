@@ -8,7 +8,9 @@ package Servlets;
 import com.google.gson.Gson;
 import entities.User;
 import exceptions.IncorrectValueException;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 import javax.ejb.EJB;
@@ -26,7 +28,7 @@ import session.UserFacade;
  * @author pupil
  */
 @WebServlet(name = "LoginServlet", urlPatterns = {"/login",
-                                                  "/registration"
+                                                  "/add-user"
                                                  })
 public class LoginServlet extends HttpServlet {
     @EJB
@@ -43,9 +45,19 @@ public class LoginServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+            resp.setHeader("Access-Control-Allow-Origin", "*");
+            resp.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type,Accept,Origin");
+    }
+    
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
             response.setContentType("application/json;charset=UTF-8");
+            response.setHeader("Access-Control-Allow-Origin", "*");
+            response.setHeader("Access-Control-Allow-Headers", "origin, content-type, accept, Authorization");
             String path = request.getServletPath();
             request.setCharacterEncoding("UTF-8");
             
@@ -75,10 +87,10 @@ public class LoginServlet extends HttpServlet {
                         
                     }
                     break;
-                   
+
                     
 //====================================================================================================================                    
-                case "/registration": 
+                case "/add-user": 
                     String registration_login = request.getParameter("login");
                     String registration_password = request.getParameter("password");
                     if("".equals(registration_login) || registration_login == null || "".equals(registration_password) || registration_password == null){
