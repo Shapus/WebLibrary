@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -48,6 +49,18 @@ public class UserServlet extends HttpServlet {
     private DealFacade dealFacade;
 
     public static final ResourceBundle paths = ResourceBundle.getBundle("properties.JspPaths");
+    
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        super.doOptions(req, resp); //To change body of generated methods, choose Tools | Templates.
+        resp.setHeader("Access-Control-Allow-Origin", "*");
+        resp.setHeader("Access-Control-Allow-Headers", "*");
+        resp.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS");
+        resp.setHeader("Content-Type", "application/json");
+        resp.setHeader("Access-Control-Allow-Credentials", "true");
+    }
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -57,17 +70,13 @@ public class UserServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    
-    @Override
-    protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-            resp.setHeader("Access-Control-Allow-Origin", "*");
-            resp.setHeader("Access-Control-Allow-Headers", "Authorization,Content-Type,Accept,Origin");
-    }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Headers", "Authorization");
+        response.setHeader("Access-Control-Allow-Headers", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS");
+        response.setHeader("Content-Type", "application/json");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
         String path = request.getServletPath();
         request.setCharacterEncoding("UTF-8");
         Object outValue = new Object();
@@ -100,7 +109,7 @@ public class UserServlet extends HttpServlet {
                 
 //====================================================================================================================                    
             case "/user":
-                outValue = user.getId();
+                outValue = user;
                 break;
                 
                 
@@ -141,7 +150,7 @@ public class UserServlet extends HttpServlet {
                 break;
         }
         if(code == 200){
-            response.getWriter().print(gson.toJson(outValue)); 
+            
         }else{
             response.sendError(code, error);
         }

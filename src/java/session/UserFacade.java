@@ -69,7 +69,7 @@ public class UserFacade extends AbstractFacade<User> {
         }
     }
     
-    public String login(int id){
+    public String generateToken(int id){
         String token = tools.EncryptPassword.createSalt();
         Query q = em.
         createQuery("UPDATE User SET u.token=:token WHERE u.id=:id").setParameter("id", id).setParameter("token", token);
